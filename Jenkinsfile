@@ -1,3 +1,4 @@
+
 pipeline {
     agent any
 
@@ -10,10 +11,22 @@ pipeline {
             }
         }
 
-        stage('Build') {
+        stage('Build backend') {
             steps {
-                sh 'echo "Build du projet"'
+                dir('backend') {
+                    sh 'mvn clean package -DskipTests'
+                }
+            }
+        }
+
+        stage('Build frontend') {
+            steps {
+                dir('frontend') {
+                    sh 'npm ci'
+                    sh 'npm run build -- --configuration production'
+                }
             }
         }
     }
 }
+
