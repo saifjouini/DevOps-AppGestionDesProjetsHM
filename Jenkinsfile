@@ -62,14 +62,16 @@ pipeline {
             }
         }
 
-        stage('Deploy') {
-            steps {
-                sh '''
-                    docker compose pull backend frontend
-                    docker compose up -d --force-recreate backend frontend
-                '''
-            }
-        }
+        
+stage('Deploy') {
+    steps {
+        sh '''
+            docker compose -p devops-appgestiondesprojets pull backend frontend
+            docker compose -p devops-appgestiondesprojets up -d --force-recreate backend frontend
+        '''
+    }
+}
+
     }
 
     post {
