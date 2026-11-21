@@ -3,6 +3,7 @@ pipeline {
     agent any
 
     stages {
+
         stage('Git clone') {
             steps {
                 git branch: 'main',
@@ -30,8 +31,13 @@ pipeline {
 
         stage('Build Docker Images') {
             steps {
-                sh 'docker build -f backend/Dockerfile -t saifmehdi/backend:latest .'
-                sh 'docker build -f frontend/Dockerfile -t saifmehdi/frontend:latest frontend'
+                sh '''
+                    docker build -f backend/Dockerfile \
+                    -t saifmehdi/backend:latest .
+
+                    docker build -f frontend/Dockerfile \
+                    -t saifmehdi/frontend:latest frontend
+                '''
             }
         }
 
@@ -44,13 +50,35 @@ pipeline {
                 )]) {
                     sh '''
                         set -e
-                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        echo "$DOCKER_PASS" | docker login \
+                            -u "$DOCKER_USER" --password-stdin
+
                         trap 'docker logout' EXIT
+
                         docker push saifmehdi/backend:latest
                         docker push saifmehdi/frontend:latest
                     '''
                 }
             }
+        }
+
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker compose pull backend frontend
+                    docker compose up -d --force-recreate backend frontend
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo 'CI/CD Pipeline executed successfully!'
+        }
+
+        failure {
+            echo 'CI/CD Pipeline failed. Check the Console Output.'
         }
     }
 }
