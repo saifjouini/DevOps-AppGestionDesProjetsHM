@@ -27,6 +27,31 @@ pipeline {
                 }
             }
         }
+
+        stage('Build Docker Images') {
+            steps {
+                sh 'docker build -f backend/Dockerfile -t saifmehdi/backend:latest .'
+                sh 'docker build -f frontend/Dockerfile -t saifmehdi/frontend:latest frontend'
+            }
+        }
+
+        stage('Push to Docker Hub') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'DOCKERHUB_CREDENTIALS',
+                    usernameVariable: 'DOCKER_USER',
+                    passwordVariable: 'DOCKER_PASS'
+                )]) {
+                    sh '''
+                        set -e
+                        echo "$DOCKER_PASS" | docker login -u "$DOCKER_USER" --password-stdin
+                        trap 'docker logout' EXIT
+                        docker push saifmehdi/backend:latest
+                        docker push saifmehdi/frontend:latest
+                    '''
+                }
+            }
+        }
     }
 }
 
