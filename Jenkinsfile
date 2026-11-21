@@ -33,23 +33,26 @@ pipeline {
             steps {
                 sh '''
                     docker build -f backend/Dockerfile \
-                    -t saifmehdi/backend:latest .
+                        -t saifmehdi/backend:latest .
 
                     docker build -f frontend/Dockerfile \
-                    -t saifmehdi/frontend:latest frontend
+                        -t saifmehdi/frontend:latest frontend
                 '''
             }
         }
 
         stage('Push to Docker Hub') {
             steps {
-                withCredentials([usernamePassword(
-                    credentialsId: 'DOCKERHUB_CREDENTIALS',
-                    usernameVariable: 'DOCKER_USER',
-                    passwordVariable: 'DOCKER_PASS'
-                )]) {
+                withCredentials([
+                    usernamePassword(
+                        credentialsId: 'DOCKERHUB_CREDENTIALS',
+                        usernameVariable: 'DOCKER_USER',
+                        passwordVariable: 'DOCKER_PASS'
+                    )
+                ]) {
                     sh '''
                         set -e
+
                         echo "$DOCKER_PASS" | docker login \
                             -u "$DOCKER_USER" --password-stdin
 
@@ -62,16 +65,16 @@ pipeline {
             }
         }
 
-        
-stage('Deploy') {
-    steps {
-        sh '''
-            docker compose -p devops-appgestiondesprojets pull backend frontend
-            docker compose -p devops-appgestiondesprojets up -d --force-recreate backend frontend
-        '''
-    }
-}
+        stage('Deploy') {
+            steps {
+                sh '''
+                    docker compose -p devops-appgestiondesprojets pull backend frontend
 
+                    docker compose -p devops-appgestiondesprojets up -d \
+                        --force-recreate backend frontend
+                '''
+            }
+        }
     }
 
     post {
