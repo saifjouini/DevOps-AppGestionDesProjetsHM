@@ -2,6 +2,10 @@
 pipeline {
     agent any
 
+    tools {
+        sonarQube 'SonarScanner'
+    }
+
     stages {
 
         stage('Git clone') {
@@ -25,6 +29,21 @@ pipeline {
                 dir('frontend') {
                     sh 'npm ci'
                     sh 'npm run build -- --configuration production'
+                }
+            }
+        }
+
+        stage('SonarQube Analysis') {
+            steps {
+                withSonarQubeEnv('SonarQube') {
+                    sh '''
+                        sonar-scanner \
+                          -Dsonar.projectKey=DevOps-AppGestionDesProjets \
+                          -Dsonar.projectName=DevOps-AppGestionDesProjets \
+                          -Dsonar.sources=backend/src/main/java,frontend/src \
+                          -Dsonar.java.binaries=backend/target/classes \
+                          -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/target/**
+                    '''
                 }
             }
         }
