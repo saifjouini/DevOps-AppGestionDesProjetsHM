@@ -2,10 +2,6 @@
 pipeline {
     agent any
 
-    tools {
-        sonarRunner 'SonarScanner'
-    }
-
     stages {
 
         stage('Git clone') {
@@ -35,15 +31,22 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                withSonarQubeEnv('SonarQube') {
-                    sh '''
-                        sonar-scanner \
-                          -Dsonar.projectKey=DevOps-AppGestionDesProjets \
-                          -Dsonar.projectName=DevOps-AppGestionDesProjets \
-                          -Dsonar.sources=backend/src/main/java,frontend/src \
-                          -Dsonar.java.binaries=backend/target/classes \
-                          -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/target/**
-                    '''
+                script {
+                    def scannerHome = tool(
+                        name: 'SonarScanner',
+                        type: 'hudson.plugins.sonar.SonarRunnerInstallation'
+                    )
+
+                    withSonarQubeEnv('SonarQube') {
+                        sh """
+                            ${scannerHome}/bin/sonar-scanner \
+                              -Dsonar.projectKey=DevOps-AppGestionDesProjets \
+                              -Dsonar.projectName=DevOps-AppGestionDesProjets \
+                              -Dsonar.sources=backend/src/main/java,frontend/src \
+                              -Dsonar.java.binaries=backend/target/classes \
+                              -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/target/**
+                        """
+                    }
                 }
             }
         }
