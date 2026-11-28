@@ -227,3 +227,5 @@ pipeline {
 ## 👤 Auteur
 
 **ESPRIT — UP ASI**  
+## Test automatique CI/CD
+Test du webhook GitHub Jenkins Docker Hub.
